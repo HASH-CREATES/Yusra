@@ -1,0 +1,58 @@
+{
+  "general_application_onboarding": {
+    "ux_ui_principles": [
+      "Cognitive Load Management: Limit initial steps to a maximum of 3-5 core screens to prevent user drop-off.",
+      "Progressive Disclosure: Introduce advanced features, deep configurations, and permissions contextually as the user explores the app.",
+      "Value Demonstration First: Deliver a tangible 'Aha! Moment' early in the flow before asking for heavy commitments like permissions or registration.",
+      "Frictionless Opt-outs and Backtracking: Allow users to easily skip non-essential steps (like profile customization) or change answers retroactively."
+    ],
+    "universal_structure_flow": [
+      {
+        "step_id": "01_welcome_and_value_prop",
+        "title": "Value Proposition & Introduction",
+        "ui_components": [
+          "High-impact headline defining core utility",
+          "Clean visual illustration or animation previewing the app interface",
+          "Primary Call to Action (e.g., 'Get Started' or 'Take a Tour')"
+        ],
+        "user_intent": "Understand immediately what problem the app solves for them."
+      },
+      {
+        "step_id": "02_core_personalization",
+        "title": "Tailored Configuration",
+        "ui_components": [
+          "Single-select or multi-select cards for use-case identification",
+          "Role or goal-based profiling inputs"
+        ],
+        "user_intent": "Customize the application experience to fit individual workflows or preferences."
+      },
+      {
+        "step_id": "03_permission_and_privacy_gating",
+        "title": "Consent & Authorization",
+        "ui_components": [
+          "Contextual explanation cards explaining *why* a permission is needed before triggering system prompts",
+          "Transparent data usage statements"
+        ],
+        "user_intent": "Grant necessary system rights securely with clear understanding of boundaries."
+      },
+      {
+        "step_id": "04_interactive_activation",
+        "title": "The Aha! Moment (First Action)",
+        "ui_components": [
+          "Guided interactive micro-task or sandbox environment",
+          "Immediate positive feedback loop (success animation, generated output, or completed action)"
+        ],
+        "user_intent": "Experience the core benefit of the product firsthand."
+      },
+      {
+        "step_id": "05_dashboard_handshake",
+        "title": "Completion & Transition",
+        "ui_components": [
+          "Summary checklist or readiness confirmation",
+          "Smooth transition animation into the main application UI/Dashboard"
+        ],
+        "user_intent": "Exit onboarding seamlessly and land directly inside the ready-to-use application."
+      }
+    ]
+  }
+}
