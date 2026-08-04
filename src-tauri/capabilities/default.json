@@ -1,0 +1,13 @@
+// src-tauri/capabilities/default.json
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default app permissions",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "fs:default",
+    "all:default"
+  ]
+}

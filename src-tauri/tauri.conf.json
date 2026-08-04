@@ -1,0 +1,22 @@
+{
+  "tauri": {
+    "package": {
+      "product_name": "Yusra",
+      "version": "1.0.0"
+    },
+    "bundle": {
+      "identifier": "com.example.yusra",
+      "icon": [
+        "icons/icon.png"
+      ]
+    },
+    "windows": [
+      {
+        "title": "Yusra",
+        "width": 1200,
+        "height": 800,
+        "resizable": true
+      }
+    ]
+  }
+}
