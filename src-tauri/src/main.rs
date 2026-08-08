@@ -1,8 +1,5 @@
-// src-tauri/src/main.rs
-use tauri::Manager;
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    tauri::Builder::default()
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    yusra_lib::run()
 }

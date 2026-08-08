@@ -1,15 +1,15 @@
 {
-  "tauri": {
-    "package": {
-      "product_name": "Yusra",
-      "version": "1.0.0"
-    },
-    "bundle": {
-      "identifier": "com.example.yusra",
-      "icon": [
-        "icons/icon.png"
-      ]
-    },
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Yusra",
+  "version": "1.0.0",
+  "identifier": "com.example.yusra",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
     "windows": [
       {
         "title": "Yusra",
@@ -17,6 +17,14 @@
         "height": 800,
         "resizable": true
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/icon.png", "icons/icon.ico"]
   }
 }
