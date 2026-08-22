@@ -25,6 +25,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+build.log
+install.log
+tauri-dev.log
 
 # Editor / OS
 Thumbs.db
