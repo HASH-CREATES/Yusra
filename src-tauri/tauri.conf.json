@@ -22,7 +22,9 @@
         "transparent": false
       }
     ],
-    "security": { "csp": null }
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' ipc: http://ipc.localhost; media-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    }
   },
   "bundle": {
     "active": true,
