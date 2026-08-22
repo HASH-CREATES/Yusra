@@ -191,7 +191,7 @@ export default function App() {
         {omni && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex justify-center pt-[18vh] bg-black/40 backdrop-blur-sm" onClick={() => setOmni(false)}>
             <motion.div initial={{ y: -24, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: -24, opacity: 0, scale: 0.98 }} transition={{ type: "spring", stiffness: 380, damping: 28 }}
-              onClick={e => e.stopPropagation()} className="w-full max-w-[640px] mx-4">
+              onClick={(e: React.MouseEvent) => e.stopPropagation()} className="w-full max-w-[640px] mx-4">
               <div className="rounded-2xl border border-refractive-edge bg-[rgba(24,24,28,0.92)] backdrop-blur-[40px] shadow-[0_0_40px_rgba(0,240,255,0.15)] p-2">
                 <div className="flex items-center gap-3 px-3">
                   <Command className="h-5 w-5 text-ice-cyan shrink-0" />
@@ -215,7 +215,7 @@ export default function App() {
         {settingsOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setSettingsOpen(false)}>
             <motion.div initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }} transition={{ type: "spring", stiffness: 360, damping: 28 }}
-              onClick={e => e.stopPropagation()} className="w-full max-w-lg max-h-[86vh] flex flex-col rounded-2xl border border-refractive-edge bg-[rgba(24,24,28,0.96)] backdrop-blur-[40px] shadow-2xl overflow-hidden">
+              onClick={(e: React.MouseEvent) => e.stopPropagation()} className="w-full max-w-lg max-h-[86vh] flex flex-col rounded-2xl border border-refractive-edge bg-[rgba(24,24,28,0.96)] backdrop-blur-[40px] shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-refractive-edge shrink-0">
                 <div className="flex items-center gap-2"><Settings className="h-5 w-5 text-ice-cyan" /><h2 className="text-[15px] font-semibold" style={{ fontFamily: "Space Grotesk,sans-serif" }}>Device & LLM Fit</h2></div>
                 <button onClick={() => setSettingsOpen(false)} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-white/10 text-text-muted"><X className="h-4 w-4" /></button>
