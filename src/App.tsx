@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { Onboarding, Splash } from "@/components/Onboarding";
 
 // ── Types ────────────────────────────────────────────────────────────────
 type YusraResponse = { system?: string; thought: string; action: string; context_used?: number; harness_runs?: number };
@@ -29,7 +30,7 @@ const itemVariants = {
 
 export default function App() {
   const [msgs, setMsgs] = useState<Msg[]>([
-    { id: "w", text: "YUSRA — JARVIS mode online. Local entity, everywhere on this device. Ctrl+Space to summon. Tasks are re-runnable · Harness learns every run.", fromUser: false },
+    { id: "w", text: "YUSRA — YUSRA mode online. Local entity, everywhere on this device. Ctrl+Space to summon. Tasks are re-runnable · Harness learns every run.", fromUser: false },
   ]);
   const [term, setTerm] = useState<TLine[]>([{ id: "t0", text: "▸ harness idle — awaiting command", kind: "info" }]);
   const [input, setInput] = useState("");
@@ -49,6 +50,8 @@ export default function App() {
   const [learningPulse, setLearningPulse] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskPrompt, setNewTaskPrompt] = useState("");
+  const [showSplash, setShowSplash] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const chatEnd = useRef<HTMLDivElement>(null);
   const termEnd = useRef<HTMLDivElement>(null);
@@ -69,6 +72,23 @@ export default function App() {
     } catch { /* */ }
   }, []);
   useEffect(() => { refreshHarness(); }, [refreshHarness]);
+
+  // startup: splash 1.1s then check onboarding_done
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      setShowSplash(false);
+      try {
+        const v = await invoke<string>("get_entity_command", { key: "onboarding_done" });
+        const done = v.includes("true");
+        setShowOnboarding(!done);
+      } catch { setShowOnboarding(true); }
+    }, 1100);
+    return () => clearTimeout(t);
+  }, []);
+  const completeOnboarding = useCallback(async () => {
+    try { await invoke<string>("set_entity_command", { key: "onboarding_done", value_json: "true" }); } catch { /* */ }
+    setShowOnboarding(false);
+  }, []);
 
   const ask = async (raw: string) => {
     const prompt = raw.trim(); if (!prompt) return;
@@ -125,7 +145,7 @@ export default function App() {
   const deleteTask = async (id: number) => { try { const j = await invoke<string>("delete_task_command", { id }); setTasks(JSON.parse(j)); } catch { } };
   const toggleFav = async (id: number) => { try { const j = await invoke<string>("toggle_favorite_task_command", { id }); setTasks(JSON.parse(j)); } catch { } };
 
-  // shortcuts — JARVIS everywhere
+  // shortcuts — YUSRA everywhere
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.code === "Space") { e.preventDefault(); setOmni(o => !o); setOmniText(""); }
@@ -156,14 +176,22 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-deep-carbon text-text-primary relative" style={{ fontFamily: "Inter,system-ui,sans-serif" }}>
-      {/* JARVIS grid + aurora — cyan/amber/emerald only, no violet */}
+      {/* Startup + Onboarding */}
+      <AnimatePresence>
+        {showSplash && <Splash onDone={() => setShowSplash(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showOnboarding && !showSplash && <Onboarding onComplete={completeOnboarding} onSkip={completeOnboarding} />}
+      </AnimatePresence>
+
+      {/* YUSRA grid + aurora — cyan/amber/emerald only, no violet */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="jarvis-grid" />
-        <motion.div className="jarvis-aurora" animate={{ x: [0, 14, -8, 0], y: [0, -8, 6, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} />
-        <div className="jarvis-scanline" style={{ animation: "scan 3.2s linear infinite" }} />
+        <div className="yusra-grid" />
+        <motion.div className="yusra-aurora" animate={{ x: [0, 14, -8, 0], y: [0, -8, 6, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} />
+        <div className="yusra-scanline" style={{ animation: "scan 3.2s linear infinite" }} />
       </div>
 
-      {/* Titlebar — JARVIS HUD */}
+      {/* Titlebar — YUSRA HUD */}
       <div data-tauri-drag-region className="relative z-20 h-9 shrink-0 flex items-center justify-between px-3 border-b border-refractive-edge bg-deep-carbon/85 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -177,7 +205,7 @@ export default function App() {
             </div>
             <span className="text-[11px] tracking-[0.22em] uppercase font-bold" style={{ fontFamily: "Space Grotesk,sans-serif" }}>YUSRA</span>
             <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full bg-ice-subtle text-ice-cyan border border-ice-cyan/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-ice-cyan animate-pulse" /> JARVIS · everywhere
+              <span className="h-1.5 w-1.5 rounded-full bg-ice-cyan animate-pulse" /> YUSRA · everywhere
             </span>
           </motion.div>
           <div className="hidden lg:flex items-center gap-1.5 ml-3">
@@ -185,8 +213,8 @@ export default function App() {
               <Activity className="h-3 w-3 text-ice-cyan" /> harness {harnessRuns}
             </span>
             <motion.span animate={learningPulse ? { scale: [1, 1.06, 1], borderColor: ["rgba(0,240,255,0.18)", "rgba(0,240,255,0.45)", "rgba(0,240,255,0.18)"] } : {}} className="h-5 px-2 rounded-full bg-white/[0.06] border border-white/10 flex items-center gap-1.5 text-[10px]">
-              <Brain className="h-3 w-3 text-jarvis-emerald" /> ctx {lastContext}
-              {learningPulse && <span className="h-1.5 w-1.5 rounded-full bg-jarvis-emerald animate-pulse" />}
+              <Brain className="h-3 w-3 text-yusra-emerald" /> ctx {lastContext}
+              {learningPulse && <span className="h-1.5 w-1.5 rounded-full bg-yusra-emerald animate-pulse" />}
             </motion.span>
           </div>
         </div>
@@ -200,13 +228,13 @@ export default function App() {
         </div>
       </div>
 
-      {/* Harness strip — JARVIS status */}
+      {/* Harness strip — YUSRA status */}
       <div className="relative z-10 h-7 shrink-0 flex items-center gap-2 px-3 border-b border-refractive-edge bg-white/[0.03] backdrop-blur-md text-[10px]">
         <span className="flex items-center gap-1.5 text-text-muted"><Layers className="h-3 w-3 text-ice-cyan" /> HARNESS</span>
         <span className="h-3 w-px bg-white/10" />
-        <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-jarvis-amber" /> {harnessRuns} runs</span>
+        <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-yusra-amber" /> {harnessRuns} runs</span>
         <span className="flex items-center gap-1"><History className="h-3 w-3 text-text-muted" /> {tasks.length} tasks</span>
-        <span className="flex items-center gap-1"><Eye className="h-3 w-3 text-jarvis-emerald" /> self-learning {lastContext > 0 ? "active" : "warmup"}</span>
+        <span className="flex items-center gap-1"><Eye className="h-3 w-3 text-yusra-emerald" /> self-learning {lastContext > 0 ? "active" : "warmup"}</span>
         <span className="ml-auto hidden sm:flex items-center gap-1.5 text-text-faint">Ctrl+Space omni · Ctrl+Shift+K tasks · Ctrl+, settings</span>
       </div>
 
@@ -250,19 +278,19 @@ export default function App() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-medium truncate flex items-center gap-1.5">
-                          {t.is_favorite && <Star className="h-3 w-3 text-jarvis-amber fill-jarvis-amber shrink-0" />}
+                          {t.is_favorite && <Star className="h-3 w-3 text-yusra-amber fill-yusra-amber shrink-0" />}
                           {t.title}
                         </div>
                         <div className="text-[11px] text-text-muted truncate">{t.prompt}</div>
                       </div>
-                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border shrink-0", t.status === "done" ? "bg-jarvis-emerald/15 text-jarvis-emerald border-jarvis-emerald/20" : t.status === "failed" ? "bg-red-500/15 text-red-300 border-red-500/20" : t.status === "running" ? "bg-jarvis-amber/15 text-jarvis-amber border-jarvis-amber/20" : "bg-white/5 text-text-muted border-white/10")}>{t.status} · {t.run_count}×</span>
+                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border shrink-0", t.status === "done" ? "bg-yusra-emerald/15 text-yusra-emerald border-yusra-emerald/20" : t.status === "failed" ? "bg-red-500/15 text-red-300 border-red-500/20" : t.status === "running" ? "bg-yusra-amber/15 text-yusra-amber border-yusra-amber/20" : "bg-white/5 text-text-muted border-white/10")}>{t.status} · {t.run_count}×</span>
                     </div>
                     {t.result && <div className="text-[11px] font-mono bg-black/30 border border-white/5 rounded-lg p-2 max-h-20 overflow-y-auto whitespace-pre-wrap break-words">{t.result.slice(0, 300)}</div>}
                     <div className="flex items-center gap-1.5">
                       <motion.button whileTap={{ scale: 0.96 }} onClick={() => runTask(t.id)} disabled={busy} className="flex-1 h-7 rounded-lg bg-ice-cyan text-deep-carbon text-xs font-medium flex items-center justify-center gap-1 disabled:opacity-50">
                         <Play className="h-3 w-3" /> Re-run
                       </motion.button>
-                      <motion.button whileTap={{ scale: 0.96 }} onClick={() => toggleFav(t.id)} className={cn("h-7 w-7 grid place-items-center rounded-lg border", t.is_favorite ? "bg-jarvis-amber text-deep-carbon border-jarvis-amber" : "bg-white/[0.06] border-white/10")}>
+                      <motion.button whileTap={{ scale: 0.96 }} onClick={() => toggleFav(t.id)} className={cn("h-7 w-7 grid place-items-center rounded-lg border", t.is_favorite ? "bg-yusra-amber text-deep-carbon border-yusra-amber" : "bg-white/[0.06] border-white/10")}>
                         <Bookmark className="h-3.5 w-3.5" />
                       </motion.button>
                       <motion.button whileTap={{ scale: 0.96 }} onClick={() => deleteTask(t.id)} className="h-7 w-7 grid place-items-center rounded-lg bg-white/[0.06] border border-white/10 hover:bg-red-500/15">
@@ -282,7 +310,7 @@ export default function App() {
             <div className="flex items-center gap-2 text-[11px] tracking-widest uppercase font-semibold">
               <div className="h-6 w-6 rounded-lg bg-ice-cyan/15 border border-ice-cyan/20 grid place-items-center"><MessageSquare className="h-3.5 w-3.5 text-ice-cyan" /></div>
               Reasoning Stream
-              {learningPulse && <span className="ml-1 h-1.5 w-1.5 rounded-full bg-jarvis-emerald animate-pulse" />}
+              {learningPulse && <span className="ml-1 h-1.5 w-1.5 rounded-full bg-yusra-emerald animate-pulse" />}
             </div>
             <div className="flex items-center gap-1.5">
               <AnimatePresence>{busy && <motion.span initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} className="h-6 px-2 rounded-full bg-ice-cyan/15 border border-ice-cyan/20 flex items-center gap-1.5 text-[10px] text-ice-cyan"><Loader2 className="h-3 w-3 animate-spin" /> harness</motion.span>}</AnimatePresence>
@@ -294,7 +322,7 @@ export default function App() {
               <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-3">
                 {msgs.map(m => (
                   <motion.div key={m.id} variants={itemVariants} layout whileHover={{ y: -1 }} className={cn("relative rounded-2xl border p-3.5 text-[13.5px] leading-relaxed max-w-[92%] overflow-hidden", m.fromUser ? "ml-auto bg-ice-cyan/[0.10] border-ice-cyan/20 shadow-glow-cyan" : "bg-white/[0.04] border-white/10")}>
-                    {!m.fromUser && <div className="flex items-center gap-2 mb-1.5"><span className="h-5 w-5 rounded-full bg-ice-cyan grid place-items-center"><Sparkles className="h-3 w-3 text-deep-carbon" /></span><span className="text-[10px] tracking-[0.14em] uppercase font-bold text-ice-cyan">YUSRA</span><span className="ml-auto h-1.5 w-1.5 rounded-full bg-jarvis-emerald animate-pulse" /></div>}
+                    {!m.fromUser && <div className="flex items-center gap-2 mb-1.5"><span className="h-5 w-5 rounded-full bg-ice-cyan grid place-items-center"><Sparkles className="h-3 w-3 text-deep-carbon" /></span><span className="text-[10px] tracking-[0.14em] uppercase font-bold text-ice-cyan">YUSRA</span><span className="ml-auto h-1.5 w-1.5 rounded-full bg-yusra-emerald animate-pulse" /></div>}
                     <div className={cn("whitespace-pre-wrap break-words", m.fromUser ? "text-white" : "text-white/90")}>{m.text}</div>
                     <div className="pointer-events-none absolute inset-0 rounded-2xl border border-white/[0.05]" />
                   </motion.div>
@@ -302,7 +330,7 @@ export default function App() {
               </motion.div>
             </LayoutGroup>
             <AnimatePresence>
-              {busy && <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-2 text-xs text-text-muted"><span className="h-7 px-3 rounded-full bg-white/[0.06] border border-white/10 flex items-center gap-2"><span className="flex gap-1"><motion.span className="h-1.5 w-1.5 rounded-full bg-ice-cyan" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity }} /><motion.span className="h-1.5 w-1.5 rounded-full bg-white" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.15 }} /><motion.span className="h-1.5 w-1.5 rounded-full bg-jarvis-emerald" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }} /></span> harness executing</span></motion.div>}
+              {busy && <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-2 text-xs text-text-muted"><span className="h-7 px-3 rounded-full bg-white/[0.06] border border-white/10 flex items-center gap-2"><span className="flex gap-1"><motion.span className="h-1.5 w-1.5 rounded-full bg-ice-cyan" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity }} /><motion.span className="h-1.5 w-1.5 rounded-full bg-white" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.15 }} /><motion.span className="h-1.5 w-1.5 rounded-full bg-yusra-emerald" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }} /></span> harness executing</span></motion.div>}
             </AnimatePresence>
             <div ref={chatEnd} />
           </div>
@@ -321,7 +349,7 @@ export default function App() {
               </motion.button>
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[10px] text-text-faint px-1">
-              <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-jarvis-amber" /> JARVIS everywhere · local only</span>
+              <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-yusra-amber" /> YUSRA everywhere · local only</span>
               <span className="hidden sm:inline flex items-center gap-1"><RotateCcw className="h-3 w-3" /> + to save task · tasks re-run forever</span>
             </div>
           </motion.form>
@@ -336,17 +364,17 @@ export default function App() {
         <motion.div layout className="flex-1 flex flex-col min-w-0 rounded-2xl overflow-hidden border border-refractive-edge bg-[#0B0B0E] shadow-glass">
           <div className="h-9 shrink-0 flex items-center justify-between px-3 border-b border-white/10 bg-white/[0.04]">
             <div className="flex items-center gap-2 text-[11px] tracking-widest uppercase font-semibold">
-              <div className="h-6 w-6 rounded-lg bg-jarvis-emerald/15 border border-jarvis-emerald/20 grid place-items-center"><Terminal className="h-3.5 w-3.5 text-jarvis-emerald" /></div>
+              <div className="h-6 w-6 rounded-lg bg-yusra-emerald/15 border border-yusra-emerald/20 grid place-items-center"><Terminal className="h-3.5 w-3.5 text-yusra-emerald" /></div>
               Harness · Live
             </div>
-            <motion.span key={busy ? "run" : "idle"} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={cn("h-6 px-2.5 rounded-full border flex items-center gap-1.5 text-[10px] font-medium", busy ? "bg-jarvis-amber/15 border-jarvis-amber/20 text-jarvis-amber" : "bg-jarvis-emerald/12 border-jarvis-emerald/20 text-jarvis-emerald")}>
-              <span className={cn("h-1.5 w-1.5 rounded-full", busy ? "bg-jarvis-amber animate-pulse" : "bg-jarvis-emerald")} />{busy ? "running" : "idle"}
+            <motion.span key={busy ? "run" : "idle"} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={cn("h-6 px-2.5 rounded-full border flex items-center gap-1.5 text-[10px] font-medium", busy ? "bg-yusra-amber/15 border-yusra-amber/20 text-yusra-amber" : "bg-yusra-emerald/12 border-yusra-emerald/20 text-yusra-emerald")}>
+              <span className={cn("h-1.5 w-1.5 rounded-full", busy ? "bg-yusra-amber animate-pulse" : "bg-yusra-emerald")} />{busy ? "running" : "idle"}
             </motion.span>
           </div>
           <div className="flex-1 overflow-y-auto p-3 font-mono text-[12.5px] leading-relaxed scroll-thin" style={{ fontFamily: "JetBrains Mono,monospace" }}>
             <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-1">
               {term.map(l => (
-                <motion.div key={l.id} variants={itemVariants} className={cn("whitespace-pre-wrap break-words rounded-lg px-2.5 py-1.5 border", l.kind === "cmd" && "bg-ice-cyan/[0.08] border-ice-cyan/15 text-ice-cyan", l.kind === "out" && "bg-jarvis-emerald/[0.06] border-jarvis-emerald/10 text-emerald-200/90", l.kind === "err" && "bg-red-500/[0.08] border-red-500/15 text-red-300/90", l.kind === "info" && "bg-white/[0.03] border-white/5 text-text-muted")}>
+                <motion.div key={l.id} variants={itemVariants} className={cn("whitespace-pre-wrap break-words rounded-lg px-2.5 py-1.5 border", l.kind === "cmd" && "bg-ice-cyan/[0.08] border-ice-cyan/15 text-ice-cyan", l.kind === "out" && "bg-yusra-emerald/[0.06] border-yusra-emerald/10 text-emerald-200/90", l.kind === "err" && "bg-red-500/[0.08] border-red-500/15 text-red-300/90", l.kind === "info" && "bg-white/[0.03] border-white/5 text-text-muted")}>
                   {l.text}
                 </motion.div>
               ))}
@@ -354,12 +382,12 @@ export default function App() {
             <div ref={termEnd} />
           </div>
           <div className="h-7 shrink-0 flex items-center px-3 border-t border-white/5 bg-white/[0.02] text-[10px] text-text-faint">
-            <span className="flex items-center gap-1.5"><Circle className="h-2 w-2 fill-jarvis-emerald text-jarvis-emerald animate-pulse" /> harness streams — self-learning from every run</span>
+            <span className="flex items-center gap-1.5"><Circle className="h-2 w-2 fill-yusra-emerald text-yusra-emerald animate-pulse" /> harness streams — self-learning from every run</span>
           </div>
         </motion.div>
       </div>
 
-      {/* Omni — JARVIS everywhere (Ctrl+Space from any pane) */}
+      {/* Omni — YUSRA everywhere (Ctrl+Space from any pane) */}
       <AnimatePresence>
         {omni && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex justify-center pt-[14vh] bg-black/55 backdrop-blur-[6px] p-4" onClick={() => setOmni(false)}>
@@ -370,7 +398,7 @@ export default function App() {
                   <motion.div animate={{ rotate: omniText ? 10 : 0 }} className="h-9 w-9 rounded-xl bg-ice-cyan grid place-items-center shadow-glow-cyan shrink-0">
                     <Command className="h-5 w-5 text-deep-carbon" />
                   </motion.div>
-                  <input ref={omniRef} value={omniText} onChange={e => setOmniText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && omniText.trim()) { const t = omniText; setOmni(false); setOmniText(""); ask(t); } }} placeholder="JARVIS — tell me what to do, anywhere…" className="flex-1 h-11 bg-transparent outline-none text-[15px] placeholder:text-text-faint" />
+                  <input ref={omniRef} value={omniText} onChange={e => setOmniText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && omniText.trim()) { const t = omniText; setOmni(false); setOmniText(""); ask(t); } }} placeholder="YUSRA — tell me what to do, anywhere…" className="flex-1 h-11 bg-transparent outline-none text-[15px] placeholder:text-text-faint" />
                   <AnimatePresence>
                     {omniText.trim() && <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}><Button size="sm" onClick={() => { const t = omniText; setOmni(false); setOmniText(""); ask(t); }} className="rounded-xl bg-ice-cyan text-deep-carbon shadow-glow-cyan">Run <ChevronRight className="h-3.5 w-3.5" /></Button></motion.div>}
                   </AnimatePresence>
@@ -391,7 +419,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/5 bg-black/10 text-[10px] text-text-faint">
-                  <span className="flex items-center gap-1.5"><Sparkles className="h-3 w-3 text-ice-cyan" /> JARVIS — natural language → harness execution</span>
+                  <span className="flex items-center gap-1.5"><Sparkles className="h-3 w-3 text-ice-cyan" /> YUSRA — natural language → harness execution</span>
                   <span>↵ run · Esc close</span>
                 </div>
               </div>
@@ -406,13 +434,13 @@ export default function App() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-[8px] p-4" onClick={() => setSettingsOpen(false)}>
             <motion.div initial={{ opacity: 0, scale: 0.96, y: 16, filter: "blur(8px)" }} animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, scale: 0.96, y: 16, filter: "blur(8px)" }} transition={{ type: "spring", stiffness: 360, damping: 28 }} onClick={(e: React.MouseEvent) => e.stopPropagation()} className="w-full max-w-lg max-h-[86vh] flex flex-col rounded-[20px] border border-white/10 bg-glass-strong backdrop-blur-[40px] shadow-[0_20px_80px_rgba(0,0,0,0.6)] overflow-hidden">
               <div className="relative h-20 shrink-0 overflow-hidden border-b border-white/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-ice-cyan/12 via-white/[0.02] to-jarvis-amber/06" />
+                <div className="absolute inset-0 bg-gradient-to-br from-ice-cyan/12 via-white/[0.02] to-yusra-amber/06" />
                 <div className="relative h-full flex items-center justify-between px-5">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/10 grid place-items-center backdrop-blur-md"><Settings className="h-5 w-5 text-white" /></div>
                     <div>
                       <h2 className="text-[15px] font-semibold tracking-tight" style={{ fontFamily: "Space Grotesk,sans-serif" }}>Device & Harness</h2>
-                      <p className="text-xs text-text-muted">JARVIS local · no cloud</p>
+                      <p className="text-xs text-text-muted">YUSRA local · no cloud</p>
                     </div>
                   </div>
                   <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }} onClick={() => setSettingsOpen(false)} className="h-8 w-8 grid place-items-center rounded-xl bg-white/10 border border-white/10 text-white/70 hover:text-white"><X className="h-4 w-4" /></motion.button>
@@ -422,14 +450,14 @@ export default function App() {
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }} className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                   <div className="relative flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <div className={cn("h-10 w-10 rounded-xl grid place-items-center border", llmFit === "ok" ? "bg-jarvis-emerald/15 border-jarvis-emerald/20" : llmFit === "offline" ? "bg-jarvis-amber/15 border-jarvis-amber/20" : "bg-ice-cyan/10 border-ice-cyan/20")}>
-                        <Activity className={cn("h-5 w-5", llmFit === "ok" ? "text-jarvis-emerald" : llmFit === "offline" ? "text-jarvis-amber" : "text-ice-cyan")} />
+                      <div className={cn("h-10 w-10 rounded-xl grid place-items-center border", llmFit === "ok" ? "bg-yusra-emerald/15 border-yusra-emerald/20" : llmFit === "offline" ? "bg-yusra-amber/15 border-yusra-amber/20" : "bg-ice-cyan/10 border-ice-cyan/20")}>
+                        <Activity className={cn("h-5 w-5", llmFit === "ok" ? "text-yusra-emerald" : llmFit === "offline" ? "text-yusra-amber" : "text-ice-cyan")} />
                       </div>
                       <div><div className="text-sm font-semibold">Harness Learning</div><div className="text-xs text-text-muted">{harnessRuns} runs · {lastContext} context hits</div></div>
                     </div>
                     {llmFit === "checking" && <span className="h-6 px-2.5 rounded-full bg-white/10 border border-white/10 flex items-center gap-1.5 text-xs"><Loader2 className="h-3 w-3 animate-spin" /> checking</span>}
-                    {llmFit === "ok" && <span className="h-6 px-2.5 rounded-full bg-jarvis-emerald/15 border border-jarvis-emerald/20 text-jarvis-emerald text-xs flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-jarvis-emerald animate-pulse" /> ready</span>}
-                    {llmFit === "offline" && <span className="h-6 px-2.5 rounded-full bg-jarvis-amber/15 border border-jarvis-amber/20 text-jarvis-amber text-xs">offline</span>}
+                    {llmFit === "ok" && <span className="h-6 px-2.5 rounded-full bg-yusra-emerald/15 border border-yusra-emerald/20 text-yusra-emerald text-xs flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-yusra-emerald animate-pulse" /> ready</span>}
+                    {llmFit === "offline" && <span className="h-6 px-2.5 rounded-full bg-yusra-amber/15 border border-yusra-amber/20 text-yusra-amber text-xs">offline</span>}
                   </div>
                   <p className="relative mt-3 text-xs leading-relaxed text-text-muted">
                     {llmFit === "checking" && "Profiling device…"}
@@ -437,7 +465,7 @@ export default function App() {
                     {llmFit === "offline" && "No local model — harness still learns from command patterns. Add a GGUF to unlock full inference."}
                   </p>
                   <div className="relative mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div className={cn("h-full rounded-full", llmFit === "ok" ? "bg-ice-cyan" : llmFit === "offline" ? "bg-jarvis-amber" : "bg-white/40")} initial={{ width: "22%" }} animate={{ width: llmFit === "checking" ? "42%" : llmFit === "ok" ? "86%" : "38%" }} transition={{ type: "spring", stiffness: 120, damping: 18 }} />
+                    <motion.div className={cn("h-full rounded-full", llmFit === "ok" ? "bg-ice-cyan" : llmFit === "offline" ? "bg-yusra-amber" : "bg-white/40")} initial={{ width: "22%" }} animate={{ width: llmFit === "checking" ? "42%" : llmFit === "ok" ? "86%" : "38%" }} transition={{ type: "spring", stiffness: 120, damping: 18 }} />
                   </div>
                 </motion.div>
                 {specs ? (
@@ -461,7 +489,7 @@ export default function App() {
                 ) : <div className="flex items-center gap-2 text-xs text-text-muted"><Loader2 className="h-3.5 w-3.5 animate-spin" /> loading…</div>}
               </div>
               <div className="p-3 border-t border-white/10 bg-black/10 flex items-center justify-between shrink-0">
-                <span className="text-[11px] text-text-muted">100% local · JARVIS on this device</span>
+                <span className="text-[11px] text-text-muted">100% local · YUSRA on this device</span>
                 <Button size="sm" onClick={() => setSettingsOpen(false)} className="rounded-xl bg-ice-cyan text-deep-carbon shadow-glow-cyan">Close</Button>
               </div>
             </motion.div>
@@ -473,17 +501,17 @@ export default function App() {
       <AnimatePresence>
         {dangerCmd && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-[8px] p-4">
-            <motion.div initial={{ opacity: 0, y: 16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.97 }} className="w-full max-w-md overflow-hidden rounded-[20px] border border-jarvis-amber/30 bg-[rgba(26,18,6,0.96)] backdrop-blur-[32px]">
-              <div className="h-1 w-full bg-jarvis-amber" />
+            <motion.div initial={{ opacity: 0, y: 16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.97 }} className="w-full max-w-md overflow-hidden rounded-[20px] border border-yusra-amber/30 bg-[rgba(26,18,6,0.96)] backdrop-blur-[32px]">
+              <div className="h-1 w-full bg-yusra-amber" />
               <div className="p-5">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-jarvis-amber/15 border border-jarvis-amber/25 grid place-items-center"><AlertTriangle className="h-5 w-5 text-jarvis-amber" /></div>
+                  <div className="h-10 w-10 rounded-xl bg-yusra-amber/15 border border-yusra-amber/25 grid place-items-center"><AlertTriangle className="h-5 w-5 text-yusra-amber" /></div>
                   <div><h3 className="text-sm font-semibold text-amber-100">High-risk command</h3><p className="text-xs text-amber-200/70">Needs explicit confirm</p></div>
                 </div>
-                <pre className="mt-3 p-3 rounded-xl bg-black/50 border border-jarvis-amber/20 text-xs text-amber-100 whitespace-pre-wrap break-words font-mono">{dangerCmd}</pre>
+                <pre className="mt-3 p-3 rounded-xl bg-black/50 border border-yusra-amber/20 text-xs text-amber-100 whitespace-pre-wrap break-words font-mono">{dangerCmd}</pre>
                 <div className="mt-4 flex gap-2 justify-end">
                   <Button variant="ghost" size="sm" onClick={() => setDangerCmd(null)} className="rounded-xl">Cancel</Button>
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={confirmDanger} className="h-9 px-4 rounded-xl bg-jarvis-amber text-deep-carbon text-sm font-medium">Confirm & Run</motion.button>
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={confirmDanger} className="h-9 px-4 rounded-xl bg-yusra-amber text-deep-carbon text-sm font-medium">Confirm & Run</motion.button>
                 </div>
               </div>
             </motion.div>

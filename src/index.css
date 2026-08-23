@@ -11,8 +11,8 @@ body { margin: 0; background: #0A0A0C; color: #fff; overflow: hidden; -webkit-fo
 .scroll-thin::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
 .scroll-thin::-webkit-scrollbar-track { background: transparent; }
 
-/* JARVIS — subtle cyan grid + aurora, no violet/pink */
-.jarvis-grid {
+/* Yusra — subtle cyan grid + aurora */
+.yusra-grid {
   position: absolute; inset: 0;
   background-image:
     linear-gradient(rgba(0,240,255,0.025) 1px, transparent 1px),
@@ -21,7 +21,7 @@ body { margin: 0; background: #0A0A0C; color: #fff; overflow: hidden; -webkit-fo
   mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
   pointer-events: none;
 }
-.jarvis-aurora {
+.yusra-aurora {
   position: absolute; inset: -20%;
   background:
     radial-gradient(560px 380px at 18% 12%, rgba(0,240,255,0.08), transparent 62%),
@@ -31,7 +31,7 @@ body { margin: 0; background: #0A0A0C; color: #fff; overflow: hidden; -webkit-fo
   filter: blur(18px);
   pointer-events: none;
 }
-.jarvis-scanline {
+.yusra-scanline {
   position: absolute; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(0,240,255,0.18), transparent);
   opacity: 0.6; pointer-events: none;
