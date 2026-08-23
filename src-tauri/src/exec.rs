@@ -1,6 +1,5 @@
 use serde::Serialize;
 use std::process::Command;
-use std::time::Duration;
 
 // Expanded deny-list — ponytail: blocklist not allowlist because agentic use-case needs broad shell.
 // Covers disk-destroy, fork-bomb, privilege escalation, and common exfiltration vectors.

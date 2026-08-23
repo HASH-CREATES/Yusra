@@ -2,6 +2,7 @@ mod agent;
 mod exec;
 mod memory;
 mod profiler;
+mod tasks;
 
 #[tauri::command]
 fn ask_yusra_command(prompt: String) -> String {
@@ -38,6 +39,28 @@ fn get_entity_command(key: String) -> String {
     memory::get_entity(key)
 }
 
+// Tasks — re-runnable, harness-driven
+#[tauri::command]
+fn create_task_command(title: String, prompt: String) -> String {
+    tasks::create_task(title, prompt)
+}
+#[tauri::command]
+fn list_tasks_command() -> String {
+    tasks::list_tasks()
+}
+#[tauri::command]
+fn run_task_command(id: i64) -> String {
+    tasks::run_task(id)
+}
+#[tauri::command]
+fn delete_task_command(id: i64) -> String {
+    tasks::delete_task(id)
+}
+#[tauri::command]
+fn toggle_favorite_task_command(id: i64) -> String {
+    tasks::toggle_favorite(id)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -48,7 +71,12 @@ pub fn run() {
             store_memory_command,
             search_memory_command,
             set_entity_command,
-            get_entity_command
+            get_entity_command,
+            create_task_command,
+            list_tasks_command,
+            run_task_command,
+            delete_task_command,
+            toggle_favorite_task_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
