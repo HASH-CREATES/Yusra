@@ -1,7 +1,11 @@
 {
   "name": "yusra",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
+  "description": "Yusra — local-first desktop entity (Tauri + Rust + React)",
+  "bin": {
+    "yusra": "./bin/yusra.js"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
