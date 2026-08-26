@@ -32,17 +32,16 @@ def _build_context(prompt: str, session_id: str) -> list[dict]:
 
 def _infer_json(messages: list[dict]) -> tuple[str, LlmResponse]:
     raw = llm.generate(messages)
-    data = llm.extract_json(raw)
-    if data is None:
-        # One-shot repair: show the model its bad output, demand JSON again.
+    data = llm.extract_json(raw)  # bulletproof: always a dict
+    # Repair retry only when the model produced nothing usable — give it one
+    # second chance before accepting whatever we got (extraction guarantee).
+    if not data.get("speak") and not data.get("action"):
         retry = messages + [
             {"role": "assistant", "content": raw},
             {"role": "user", "content": "That was not valid JSON per the schema. Respond AGAIN with ONLY valid JSON."},
         ]
         raw = llm.generate(retry)
         data = llm.extract_json(raw)
-    if data is None:
-        return raw, LlmResponse(speak=raw.strip()[:2000] or "I could not format my response.")
     try:
         return raw, LlmResponse(**data)
     except Exception:  # noqa: BLE001 — schema drift: degrade to plain speak

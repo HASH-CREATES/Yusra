@@ -69,9 +69,7 @@ def generate(messages: list[dict]) -> str:
     return out["choices"][0]["message"]["content"] or ""
 
 
-def extract_json(raw: str) -> Optional[dict]:
-    """Pull the first JSON object out of a raw completion (tolerates fences/prose)."""
-    text = re.sub(r"```(?:json)?", "", raw).strip()
+def _balanced_extract(text: str) -> Optional[dict]:
     start = text.find("{")
     if start == -1:
         return None
@@ -102,8 +100,59 @@ def extract_json(raw: str) -> Optional[dict]:
     return None
 
 
+def _salvage_fields(text: str) -> Optional[dict]:
+    """Small models emit broken envelopes like `"speak": "path: " + Get-Location` —
+    unquoted code perches inside strings. Recover the fields by regex instead of
+    dropping the whole turn."""
+    def field(name: str) -> Optional[str]:
+        m = re.search(rf'"{name}"\s*:\s*"((?:[^"\\]|\\.)*)"', text)
+        if not m:
+            return None
+        try:
+            return json.loads(f'"{m.group(1)}"')
+        except json.JSONDecodeError:
+            return m.group(1)
+
+    speak = field("speak")
+    a_type = field("type")
+    a_code = field("code")
+    if not (speak or a_code):
+        return None
+    out: dict = {"thought": None, "speak": speak or "", "action": None}
+    if a_type in ("shell", "python", "file_read", "file_write", "done") and a_code:
+        out["action"] = {"type": a_type, "code": a_code}
+    return out
+
+
+def extract_json(raw: str) -> dict:
+    """Bulletproof — always returns a dict shaped {thought, speak, action}.
+    Tries: balanced braces → regex field salvage → raw-text fallback. Never raises, never returns None."""
+    text = re.sub(r"```(?:json)?", "", raw).strip()
+    data = _balanced_extract(text)
+    if data is None:
+        data = _salvage_fields(text)
+    if data is None:
+        return {
+            "thought": "",
+            "speak": (text[:2000] if text else "I couldn't format a response."),
+            "action": None,
+        }
+    # Normalize so LlmResponse(**data) always succeeds
+    data.setdefault("thought", "")
+    data.setdefault("speak", "")
+    data.setdefault("action", None)
+    return data
+
+
 if __name__ == "__main__":
-    assert extract_json('```json\n{"speak": "hi", "action": null}\n```') == {"speak": "hi", "action": None}
-    assert extract_json('Sure! {"speak":"a}{b","thought":null} hope that helps') == {"speak": "a}{b", "thought": None}
-    assert extract_json("no json here") is None
-    print("llm.py: extract_json self-checks passed")
+    valid = {"thought": "", "speak": "hi", "action": None}
+    assert extract_json('```json\n{"speak": "hi", "action": null}\n```') == valid
+    assert extract_json('Sure! {"speak":"a}{b","thought":null} hope that helps')["speak"] == "a}{b"
+    # Broken small-model envelope: unquoted code expression inside "speak"
+    broken = '{"thought":"t","speak":"The path is: " + Get-Location -ErrorAction Continue,"action":{"type":"shell","code":"Get-Location","path":"","content":""}}'
+    salvaged = extract_json(broken)
+    assert salvaged is not None and salvaged["action"]["code"] == "Get-Location", salvaged
+    # Garbage in → raw-text fallback (always a dict, never None, never raises)
+    fallback = extract_json("nothing parseable here at all")
+    assert isinstance(fallback, dict) and fallback["action"] is None and "nothing" in fallback["speak"], fallback
+    print("llm.py: extract_json bulletproof — balanced + salvage + fallback all pass")
