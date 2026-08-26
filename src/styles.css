@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,14 +8,154 @@
   --bg-primary: #1C1C1E;
   --bg-secondary: #2C2C2E;
   --bg-tertiary: #3A3A3C;
+  --bg-overlay: rgba(28, 28, 30, 0.85);
   --text-primary: #F5F5F7;
   --text-secondary: #A1A1A6;
+  --text-tertiary: #636366;
+  --surface-glass: rgba(245, 245, 247, 0.06);
+  --surface-glass-hover: rgba(245, 245, 247, 0.10);
+  --border-subtle: rgba(245, 245, 247, 0.08);
+  --border-refractive: rgba(255, 255, 255, 0.12);
   --accent-moss: #4A5D23;
+  --accent-moss-light: #5A7028;
+  --accent-moss-dark: #3A4A1B;
+  --accent-tea: #8993A3;
+  --accent-tea-light: #9AA3B3;
+  --accent-glow: rgba(74, 93, 35, 0.15);
+  --accent-border: rgba(74, 93, 35, 0.40);
+  --glass-blur: 40px;
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 64px;
+  --titlebar-height: 48px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  margin: 0;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism utilities */
+@layer components {
+  .glass-panel {
+    position: relative;
+    background: var(--surface-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--border-refractive) 50%, transparent 100%);
+    border-radius: 16px 16px 0 0;
+    pointer-events: none;
+  }
+
+  .glass-light {
+    background: rgba(245, 245, 247, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 245, 247, 0.06);
+  }
+
+  .glass-medium {
+    background: rgba(245, 245, 247, 0.06);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(245, 245, 247, 0.08);
+  }
+
+  .glass-heavy {
+    background: rgba(245, 245, 247, 0.08);
+    backdrop-filter: blur(60px);
+    -webkit-backdrop-filter: blur(60px);
+    border: 1px solid rgba(245, 245, 247, 0.10);
+  }
+
+  .btn-primary {
+    background: var(--accent-moss);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 200ms ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-moss-light);
+    transform: scale(1.02);
+    box-shadow: var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 200ms ease;
+  }
+
+  .btn-ghost:hover {
+    background: var(--surface-glass-hover);
+    color: var(--text-primary);
+    border-color: var(--border-refractive);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

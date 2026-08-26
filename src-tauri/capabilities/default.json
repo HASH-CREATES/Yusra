@@ -1,0 +1,18 @@
+{
+  "identifier": "default",
+  "description": "Frontend capabilities for Yusra — scoped to specific commands only",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:allow-execute",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "cmd",
+          "args": ["{ gained: false }"]
+        }
+      ]
+    }
+  ]
+}

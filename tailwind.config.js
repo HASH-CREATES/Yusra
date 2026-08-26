@@ -44,6 +44,7 @@ export default {
         'glass-1': '0 2px 8px rgba(0, 0, 0, 0.15)',
         'glass-2': '0 8px 24px rgba(0, 0, 0, 0.25)',
         'glass-3': '0 16px 48px rgba(0, 0, 0, 0.35)',
+        'glass-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
         'accent-glow': '0 0 20px rgba(74, 93, 35, 0.15)',
       },
     },

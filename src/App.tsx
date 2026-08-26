@@ -1,10 +1,87 @@
+import { useState, useCallback, useEffect } from 'react';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import TitleBar, { Sidebar } from './components/layout/TitleBar';
+import CommandBar from './components/layout/CommandBar';
+import ChatPane from './components/chat/ChatPane';
+import CodePane from './components/chat/CodePane';
+import DangerModal from './components/danger/DangerModal';
+
 function App() {
+  const [onboardingComplete, setOnboardingComplete] = useState(() => {
+    return localStorage.getItem('yusra_onboarding_complete') === 'true';
+  });
+  const [activeView, setActiveView] = useState('chat');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [commandBarOpen, setCommandBarOpen] = useState(false);
+  const [dangerModal, setDangerModal] = useState<{ command: string; risk: string } | null>(null);
+  const [lastResult] = useState<{ stdout: string; stderr: string } | null>(null);
+
+  const handleOnboardingComplete = useCallback(() => {
+    localStorage.setItem('yusra_onboarding_complete', 'true');
+    setOnboardingComplete(true);
+  }, []);
+
+  const handleDangerRequest = useCallback((cmd: string, risk: string) => {
+    setDangerModal({ command: cmd, risk });
+  }, []);
+
+  const handleDangerApprove = useCallback(() => {
+    setDangerModal(null);
+  }, []);
+
+  const handleDangerDeny = useCallback(() => {
+    setDangerModal(null);
+  }, []);
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.code === 'Space') {
+        e.preventDefault();
+        setCommandBarOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  if (!onboardingComplete) {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
+
   return (
-    <div className="min-h-screen bg-space-500 text-space-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="font-display text-4xl font-bold mb-4">Yusra</h1>
-        <p className="text-space-100">Phase 1: Rust Backend Brain — Compiled</p>
+    <div className="h-screen flex flex-col bg-space-500 text-space-50">
+      <TitleBar onCommandBarToggle={() => setCommandBarOpen(prev => !prev)} />
+
+      <div className="flex-1 flex overflow-hidden">
+        <Sidebar
+          activeView={activeView}
+          onViewChange={setActiveView}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
+        />
+
+        <main className="flex-1 flex overflow-hidden">
+          {/* Split pane: Chat | Code/Terminal */}
+          <div className="flex-1 border-r border-white/5">
+            <ChatPane onDangerRequest={handleDangerRequest} />
+          </div>
+          <div className="flex-1">
+            <CodePane lastResult={lastResult} />
+          </div>
+        </main>
       </div>
+
+      <CommandBar isOpen={commandBarOpen} onClose={() => setCommandBarOpen(false)} />
+
+      {dangerModal && (
+        <DangerModal
+          command={dangerModal.command}
+          riskLevel={dangerModal.risk}
+          onApprove={handleDangerApprove}
+          onDeny={handleDangerDeny}
+        />
+      )}
     </div>
   );
 }

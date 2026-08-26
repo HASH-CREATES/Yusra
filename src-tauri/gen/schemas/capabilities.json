@@ -1,1 +1,1 @@
-{}
+{"default":{"identifier":"default","description":"Frontend capabilities for Yusra — scoped to specific commands only","local":true,"windows":["main"],"permissions":["core:default","shell:allow-execute",{"identifier":"shell:allow-spawn","allow":[{"args":["{ gained: false }"],"name":"cmd"}]}]}}
