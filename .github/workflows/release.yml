@@ -21,21 +21,23 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies (windows)
-        run: |
-          npm install
-          npm install -g @tauri-apps/cli
+      - name: Install frontend dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli
+
+      - name: Build frontend
+        run: npx tsc && npx vite build
 
       - name: Build Tauri app
         run: npx tauri build
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
-      - name: Upload Windows NSIS installer
+      - name: Upload Windows installers
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            src-tauri/target/release/bundle/nsis/Yusra_*-setup.exe
+            src-tauri/target/release/bundle/nssis/Yusra_*-setup.exe
             src-tauri/target/release/bundle/msi/Yusra_*.msi
           draft: false
           prerelease: false
@@ -52,21 +54,22 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies (macos)
-        run: |
-          npm install
-          npm install -g @tauri-apps/cli
+      - name: Install frontend dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli
+
+      - name: Build frontend
+        run: npx tsc && npx vite build
 
       - name: Build Tauri app (universal)
         run: npx tauri build --target universal-apple-darwin
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
       - name: Upload macOS DMG
         uses: softprops/action-gh-release@v2
         with:
           files: |
             src-tauri/target/universal-apple-darwin/release/bundle/dmg/Yusra_*.dmg
-            src-tauri/target/universal-apple-darwin/release/bundle/macos/Yusra.app
           draft: false
           prerelease: false
