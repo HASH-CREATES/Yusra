@@ -18,7 +18,7 @@ export default function DangerModal({ command, riskLevel, onApprove, onDeny }: D
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{ background: 'rgba(28, 28, 30, 0.85)', backdropFilter: 'blur(8px)' }}
+        style={{ background: 'rgba(18, 18, 18, 0.90)', backdropFilter: 'blur(8px)' }}
       >
         <motion.div
           initial={{ opacity: 0, y: -40, scale: 0.95 }}

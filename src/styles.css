@@ -5,24 +5,26 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #1C1C1E;
-  --bg-secondary: #2C2C2E;
-  --bg-tertiary: #3A3A3C;
-  --bg-overlay: rgba(28, 28, 30, 0.85);
-  --text-primary: #F5F5F7;
-  --text-secondary: #A1A1A6;
-  --text-tertiary: #636366;
-  --surface-glass: rgba(245, 245, 247, 0.06);
-  --surface-glass-hover: rgba(245, 245, 247, 0.10);
-  --border-subtle: rgba(245, 245, 247, 0.08);
-  --border-refractive: rgba(255, 255, 255, 0.12);
-  --accent-moss: #4A5D23;
-  --accent-moss-light: #5A7028;
-  --accent-moss-dark: #3A4A1B;
+  --bg-primary: #121212;
+  --bg-secondary: #2A2A24;
+  --bg-tertiary: #4A4A42;
+  --bg-overlay: rgba(18, 18, 18, 0.90);
+  --text-primary: #F5F5F0;
+  --text-secondary: #C8C8C0;
+  --text-tertiary: #8A8A80;
+  --surface-glass: rgba(245, 245, 240, 0.05);
+  --surface-glass-hover: rgba(245, 245, 240, 0.09);
+  --border-subtle: rgba(245, 245, 240, 0.07);
+  --border-refractive: rgba(255, 255, 255, 0.10);
+  --accent-moss: #556B2F;
+  --accent-moss-light: #6B8A3A;
+  --accent-moss-dark: #3E5020;
+  --accent-amber: #D4AF37;
+  --accent-amber-light: #E0C04A;
   --accent-tea: #8993A3;
   --accent-tea-light: #9AA3B3;
-  --accent-glow: rgba(74, 93, 35, 0.15);
-  --accent-border: rgba(74, 93, 35, 0.40);
+  --accent-glow: rgba(85, 107, 47, 0.20);
+  --accent-border: rgba(85, 107, 47, 0.35);
   --glass-blur: 40px;
   --sidebar-width: 240px;
   --sidebar-collapsed: 64px;
@@ -53,7 +55,7 @@ body {
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--border-subtle);
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .glass-panel::before {
@@ -69,24 +71,24 @@ body {
   }
 
   .glass-light {
-    background: rgba(245, 245, 247, 0.04);
+    background: rgba(245, 245, 240, 0.04);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(245, 245, 247, 0.06);
+    border: 1px solid rgba(245, 245, 240, 0.05);
   }
 
   .glass-medium {
-    background: rgba(245, 245, 247, 0.06);
+    background: rgba(245, 245, 240, 0.06);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(245, 245, 247, 0.08);
+    border: 1px solid rgba(245, 245, 240, 0.07);
   }
 
   .glass-heavy {
-    background: rgba(245, 245, 247, 0.08);
+    background: rgba(245, 245, 240, 0.08);
     backdrop-filter: blur(60px);
     -webkit-backdrop-filter: blur(60px);
-    border: 1px solid rgba(245, 245, 247, 0.10);
+    border: 1px solid rgba(245, 245, 240, 0.10);
   }
 
   .btn-primary {
@@ -100,13 +102,13 @@ body {
     font-size: 16px;
     cursor: pointer;
     transition: all 200ms ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
   .btn-primary:hover {
     background: var(--accent-moss-light);
     transform: scale(1.02);
-    box-shadow: var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
   .btn-primary:active {
@@ -130,6 +132,30 @@ body {
     background: var(--surface-glass-hover);
     color: var(--text-primary);
     border-color: var(--border-refractive);
+  }
+
+  .btn-amber {
+    background: var(--accent-amber);
+    color: #121212;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 200ms ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-amber:hover {
+    background: var(--accent-amber-light);
+    transform: scale(1.02);
+    box-shadow: var(--amber-glow), 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-amber:active {
+    transform: scale(0.98);
   }
 }
 

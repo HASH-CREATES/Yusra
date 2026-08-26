@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Terminal, HardDrive, FolderOpen, Sparkles } from 'lucide-react';
+import { Check, Terminal, HardDrive, FolderOpen, Sparkles, Download, Cpu } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
 
-const STEPS = ['welcome', 'personality', 'permissions', 'activation', 'complete'] as const;
+const STEPS = ['welcome', 'personality', 'permissions', 'brain', 'activation', 'complete'] as const;
 type Step = typeof STEPS[number];
 
 const spring = { type: 'spring' as const, stiffness: 300, damping: 30, mass: 0.8 };
@@ -28,6 +29,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
   const [selectedPersonality, setSelectedPersonality] = useState<string | null>(null);
   const [enabledPermissions, setEnabledPermissions] = useState<Record<string, boolean>>({});
   const [direction, setDirection] = useState(1);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadDone, setDownloadDone] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const currentIdx = STEPS.indexOf(step);
 
@@ -48,6 +53,27 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
 
   const togglePermission = (id: string) => {
     setEnabledPermissions(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const downloadDefaultModel = async () => {
+    setDownloading(true);
+    setDownloadProgress(0);
+    setDownloadError(null);
+    try {
+      const modelPath = await invoke<string>('download_model_command', {
+        url: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf'
+      });
+      await invoke<boolean>('init_model_command', {
+        modelPath: modelPath,
+        tokenizerPath: modelPath.replace('.gguf', '.tokenizer.json')
+      });
+      setDownloadDone(true);
+      setDownloadProgress(100);
+    } catch (err) {
+      setDownloadError(String(err));
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const variants = {
@@ -200,6 +226,64 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
             </div>
           )}
 
+          {step === 'brain' && (
+            <div>
+              <h2 className="font-display text-3xl font-semibold text-center mb-2">The Brain</h2>
+              <p className="text-space-100 text-center mb-8">Yusra requires a mind. Select a local GGUF model to download.</p>
+
+              <div className="glass-panel p-6 mb-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-moss/15 flex items-center justify-center">
+                    <Cpu className="w-7 h-7 text-moss" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display font-semibold text-lg">Qwen 2.5 0.5B (Instruct)</h3>
+                    <p className="text-space-100 text-sm">Fast, lightweight. ~400MB download. Ideal for most tasks.</p>
+                  </div>
+                </div>
+
+                {!downloading && !downloadDone && (
+                  <button onClick={downloadDefaultModel} className="btn-amber w-full h-12 flex items-center justify-center gap-2">
+                    <Download className="w-5 h-5" />
+                    Download Default Model
+                  </button>
+                )}
+
+                {downloading && (
+                  <div className="space-y-3">
+                    <div className="w-full h-2 bg-space-300 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-amber rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${downloadProgress}%` }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+                    <p className="text-space-100 text-sm text-center font-mono">Downloading... {downloadProgress}%</p>
+                  </div>
+                )}
+
+                {downloadDone && (
+                  <div className="flex items-center gap-3 text-moss">
+                    <Check className="w-5 h-5" />
+                    <span className="font-medium">Model ready. Yusra is awake.</span>
+                  </div>
+                )}
+
+                {downloadError && (
+                  <div className="mt-3 text-red-400 text-sm font-mono">{downloadError}</div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button onClick={goBack} className="btn-ghost flex-1 h-12">Back</button>
+                <button onClick={goNext} className="btn-primary flex-1 h-12">
+                  {downloadDone ? 'Continue' : 'Skip for now'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {step === 'activation' && (
             <div>
               <h2 className="font-display text-3xl font-semibold text-center mb-6">Let's try something</h2>
@@ -273,7 +357,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
               <h2 className="font-display text-3xl font-semibold mb-2">You're All Set</h2>
               <p className="text-space-100 mb-8">Yusra is ready. Enter your workspace.</p>
               <div className="space-y-3 mb-8 text-left max-w-xs mx-auto">
-                {['Personality selected', 'Permissions configured', 'First task completed'].map((item, i) => (
+                {['Personality selected', 'Permissions configured', 'Model downloaded', 'First task completed'].map((item, i) => (
                   <motion.div
                     key={item}
                     initial={{ opacity: 0, x: -20 }}

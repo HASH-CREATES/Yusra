@@ -5,6 +5,7 @@ import CommandBar from './components/layout/CommandBar';
 import ChatPane from './components/chat/ChatPane';
 import CodePane from './components/chat/CodePane';
 import DangerModal from './components/danger/DangerModal';
+import EntityOrb from './components/EntityOrb';
 
 function App() {
   const [onboardingComplete, setOnboardingComplete] = useState(() => {
@@ -14,7 +15,8 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [commandBarOpen, setCommandBarOpen] = useState(false);
   const [dangerModal, setDangerModal] = useState<{ command: string; risk: string } | null>(null);
-  const [lastResult] = useState<{ stdout: string; stderr: string } | null>(null);
+  const [lastResult, setLastResult] = useState<{ stdout: string; stderr: string } | null>(null);
+  const [isThinking, setIsThinking] = useState(false);
 
   const handleOnboardingComplete = useCallback(() => {
     localStorage.setItem('yusra_onboarding_complete', 'true');
@@ -31,6 +33,14 @@ function App() {
 
   const handleDangerDeny = useCallback(() => {
     setDangerModal(null);
+  }, []);
+
+  const handleCommandResult = useCallback((result: { stdout: string; stderr: string }) => {
+    setLastResult(result);
+  }, []);
+
+  const handleThinkingChange = useCallback((thinking: boolean) => {
+    setIsThinking(thinking);
   }, []);
 
   // Global keyboard shortcuts
@@ -50,7 +60,7 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-space-500 text-space-50">
+    <div className="h-screen flex flex-col bg-[#121212] text-space-50">
       <TitleBar onCommandBarToggle={() => setCommandBarOpen(prev => !prev)} />
 
       <div className="flex-1 flex overflow-hidden">
@@ -63,8 +73,19 @@ function App() {
 
         <main className="flex-1 flex overflow-hidden">
           {/* Split pane: Chat | Code/Terminal */}
-          <div className="flex-1 border-r border-white/5">
-            <ChatPane onDangerRequest={handleDangerRequest} />
+          <div className="flex-1 border-r border-white/5 flex flex-col">
+            {/* Entity Orb focal point */}
+            <div className="flex items-center justify-center py-4 border-b border-white/5">
+              <EntityOrb isThinking={isThinking} size={160} />
+            </div>
+
+            <div className="flex-1 overflow-hidden">
+              <ChatPane
+                onDangerRequest={handleDangerRequest}
+                onCommandResult={handleCommandResult}
+                onThinkingChange={handleThinkingChange}
+              />
+            </div>
           </div>
           <div className="flex-1">
             <CodePane lastResult={lastResult} />

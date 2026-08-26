@@ -2,6 +2,7 @@ use crate::persona::Persona;
 use crate::danger::CommandResult;
 use crate::{memory, engine, danger, agent};
 use sysinfo::System;
+use tauri::Manager;
 
 #[tauri::command]
 pub fn ask_yusra_command(prompt: String) -> String {
@@ -16,6 +17,44 @@ pub fn execute_command_command(cmd: String) -> CommandResult {
 #[tauri::command]
 pub fn init_model_command(model_path: String, tokenizer_path: String) -> bool {
     engine::init_model(model_path, tokenizer_path)
+}
+
+#[tauri::command]
+pub async fn download_model_command(app: tauri::AppHandle, url: String) -> Result<String, String> {
+    let model_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("models");
+    std::fs::create_dir_all(&model_dir).map_err(|e| e.to_string())?;
+
+    let filename = url.rsplit('/').next().unwrap_or("model.gguf");
+    let dest = model_dir.join(filename);
+
+    let client = reqwest::Client::new();
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    let total_size = resp.content_length().unwrap_or(0);
+
+    let mut file = std::fs::File::create(&dest).map_err(|e| e.to_string())?;
+    let mut downloaded: u64 = 0;
+    let mut stream = resp.bytes_stream();
+
+    use futures_util::StreamExt;
+    use std::io::Write;
+
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.map_err(|e| e.to_string())?;
+        file.write_all(&chunk).map_err(|e| e.to_string())?;
+        downloaded += chunk.len() as u64;
+        let _progress = if total_size > 0 {
+            (downloaded as f64 / total_size as f64 * 100.0) as u32
+        } else {
+            0
+        };
+    }
+
+    file.flush().map_err(|e| e.to_string())?;
+    Ok(dest.to_string_lossy().to_string())
 }
 
 #[tauri::command]
