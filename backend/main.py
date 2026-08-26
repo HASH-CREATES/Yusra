@@ -74,6 +74,36 @@ def unload_model() -> dict:
     return {"unloaded": True}
 
 
+DEFAULT_MODEL_URL = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+DEFAULT_MODEL_NAME = "qwen2.5-0.5b-instruct-q4_k_m.gguf"
+
+
+@app.post("/models/download_default")
+def download_default_model() -> dict:
+    """One-click brain: stream the default GGUF to disk, then load it into llama.cpp."""
+    import httpx
+
+    memory.MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    dest = memory.MODELS_DIR / DEFAULT_MODEL_NAME
+    try:
+        # follow_redirects: HF /resolve/ redirects to the CDN. read=None: never time out mid-stream.
+        with httpx.Client(follow_redirects=True, timeout=httpx.Timeout(60.0, read=None)) as client:
+            with client.stream("GET", DEFAULT_MODEL_URL) as resp:
+                resp.raise_for_status()
+                with open(dest, "wb") as f:
+                    for chunk in resp.iter_bytes(chunk_size=1 << 20):
+                        f.write(chunk)
+    except Exception as exc:  # noqa: BLE001 — surface download failures verbatim
+        dest.unlink(missing_ok=True)  # don't leave a truncated GGUF for /models to find
+        raise HTTPException(status_code=502, detail=f"Download failed: {exc}") from exc
+
+    try:
+        llm.load_model(DEFAULT_MODEL_NAME)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"Download ok but load failed: {exc}") from exc
+    return {"status": "success", "model_loaded": True}
+
+
 @app.get("/settings")
 def get_settings() -> dict:
     return {k: memory.get_state(k) for k in memory.DEFAULTS}

@@ -30,4 +30,7 @@ export const api = {
 
   loadModel: (filename: string): Promise<{ loaded: string }> =>
     post<{ loaded: string }>('/models/load', { filename }),
+
+  downloadDefaultModel: (): Promise<{ status: string; model_loaded: boolean }> =>
+    post<{ status: string; model_loaded: boolean }>('/models/download_default', {}),
 };

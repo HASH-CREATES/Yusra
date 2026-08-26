@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Terminal, HardDrive, FolderOpen, Sparkles, Search, Cpu } from 'lucide-react';
+import { Check, Terminal, HardDrive, FolderOpen, Sparkles, Download, Cpu } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const STEPS = ['welcome', 'personality', 'permissions', 'brain', 'activation', 'complete'] as const;
@@ -53,6 +53,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
 
   const togglePermission = (id: string) => {
     setEnabledPermissions(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const downloadDefault = async () => {
+    setDownloading(true);
+    setDownloadError(null);
+    try {
+      await api.downloadDefaultModel();
+      setDownloadDone(true);
+      setTimeout(goNext, 800);
+    } catch (err) {
+      setDownloadError(String(err));
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const detectModel = async () => {
@@ -243,10 +257,15 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
                 </div>
 
                 {!downloading && !downloadDone && (
-                  <button onClick={detectModel} className="btn-amber w-full h-12 flex items-center justify-center gap-2">
-                    <Search className="w-5 h-5" />
-                    Detect Model
-                  </button>
+                  <div className="space-y-3">
+                    <button onClick={downloadDefault} className="btn-amber w-full h-12 flex items-center justify-center gap-2">
+                      <Download className="w-5 h-5" />
+                      Download Model (400MB)
+                    </button>
+                    <button onClick={detectModel} className="btn-ghost w-full h-10 text-sm">
+                      I already have a GGUF — detect it
+                    </button>
+                  </div>
                 )}
 
                 {downloading && (
@@ -259,7 +278,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
                         transition={{ duration: 2, ease: 'easeInOut' }}
                       />
                     </div>
-                    <p className="text-space-100 text-sm text-center font-mono">Loading model into memory...</p>
+                    <p className="text-space-100 text-sm text-center font-mono">Downloading... (400MB)</p>
                   </div>
                 )}
 
