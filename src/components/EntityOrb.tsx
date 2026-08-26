@@ -8,6 +8,36 @@ interface EntityOrbProps {
   size?: number;
 }
 
+function Particles({ isThinking }: { isThinking: boolean }) {
+  const positions = useMemo(() => {
+    const arr = new Float32Array(150);
+    for (let i = 0; i < 150; i += 3) {
+      arr[i] = (Math.random() - 0.5) * 5;
+      arr[i + 1] = (Math.random() - 0.5) * 5;
+      arr[i + 2] = (Math.random() - 0.5) * 5;
+    }
+    return arr;
+  }, []);
+
+  const geo = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    return g;
+  }, [positions]);
+
+  return (
+    <points geometry={geo}>
+      <pointsMaterial
+        size={0.02}
+        color={isThinking ? '#D4AF37' : '#556B2F'}
+        transparent
+        opacity={0.6}
+        sizeAttenuation
+      />
+    </points>
+  );
+}
+
 function OrbMesh({ isThinking = false }: { isThinking: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<any>(null!);
@@ -71,31 +101,7 @@ function OrbMesh({ isThinking = false }: { isThinking: boolean }) {
       </mesh>
 
       {/* Ambient particles */}
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={50}
-            array={useMemo(() => {
-              const arr = new Float32Array(150);
-              for (let i = 0; i < 150; i += 3) {
-                arr[i] = (Math.random() - 0.5) * 5;
-                arr[i + 1] = (Math.random() - 0.5) * 5;
-                arr[i + 2] = (Math.random() - 0.5) * 5;
-              }
-              return arr;
-            }, [])}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          size={0.02}
-          color={isThinking ? '#D4AF37' : '#556B2F'}
-          transparent
-          opacity={0.6}
-          sizeAttenuation
-        />
-      </points>
+      <Particles isThinking={isThinking} />
     </Float>
   );
 }
