@@ -5,18 +5,18 @@ export default {
     extend: {
       colors: {
         space: {
-          50: '#F5F5F0',
-          100: '#C8C8C0',
-          200: '#8A8A80',
-          300: '#4A4A42',
-          400: '#2A2A24',
-          500: '#121212',
+          50: '#F5F5F7',
+          100: '#A1A1A6',
+          200: '#636366',
+          300: '#3A3A3C',
+          400: '#2C2C2E',
+          500: '#1C1C1E',
         },
         moss: {
-          DEFAULT: '#556B2F',
-          light: '#6B8A3A',
-          dark: '#3E5020',
-          glow: 'rgba(85, 107, 47, 0.20)',
+          DEFAULT: '#4A5D23',
+          light: '#5A7028',
+          dark: '#3A4A1B',
+          glow: 'rgba(74, 93, 35, 0.15)',
         },
         amber: {
           DEFAULT: '#D4AF37',
@@ -51,7 +51,7 @@ export default {
         'glass-2': '0 8px 24px rgba(0, 0, 0, 0.25)',
         'glass-3': '0 16px 48px rgba(0, 0, 0, 0.35)',
         'glass-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-        'accent-glow': '0 0 24px rgba(85, 107, 47, 0.25)',
+        'accent-glow': '0 0 24px rgba(74, 93, 35, 0.25)',
         'amber-glow': '0 0 24px rgba(212, 175, 55, 0.20)',
       },
     },

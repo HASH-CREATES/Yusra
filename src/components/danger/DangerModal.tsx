@@ -1,16 +1,17 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Loader2 } from 'lucide-react';
 
 interface DangerModalProps {
   command: string;
   riskLevel: string;
+  busy?: boolean;
   onApprove: () => void;
   onDeny: () => void;
 }
 
 const spring = { type: 'spring' as const, stiffness: 300, damping: 30 };
 
-export default function DangerModal({ command, riskLevel, onApprove, onDeny }: DangerModalProps) {
+export default function DangerModal({ command, riskLevel, busy = false, onApprove, onDeny }: DangerModalProps) {
   return (
     <AnimatePresence>
       <motion.div
@@ -18,7 +19,7 @@ export default function DangerModal({ command, riskLevel, onApprove, onDeny }: D
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{ background: 'rgba(18, 18, 18, 0.90)', backdropFilter: 'blur(8px)' }}
+        style={{ background: 'rgba(28, 28, 30, 0.85)', backdropFilter: 'blur(8px)' }}
       >
         <motion.div
           initial={{ opacity: 0, y: -40, scale: 0.95 }}
@@ -37,7 +38,7 @@ export default function DangerModal({ command, riskLevel, onApprove, onDeny }: D
                 <p className="text-space-100 text-sm">Risk Level: {riskLevel}</p>
               </div>
             </div>
-            <button onClick={onDeny} className="text-space-200 hover:text-space-50 transition-colors">
+            <button onClick={onDeny} disabled={busy} className="text-space-200 hover:text-space-50 transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -51,10 +52,15 @@ export default function DangerModal({ command, riskLevel, onApprove, onDeny }: D
           </div>
 
           <div className="flex gap-3">
-            <button onClick={onDeny} className="btn-ghost flex-1 h-12">
+            <button onClick={onDeny} disabled={busy} className="btn-ghost flex-1 h-12 disabled:opacity-50">
               Deny
             </button>
-            <button onClick={onApprove} className="btn-primary flex-1 h-12 bg-red-500 hover:bg-red-600">
+            <button
+              onClick={onApprove}
+              disabled={busy}
+              className="btn-primary flex-1 h-12 bg-red-500 hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {busy && <Loader2 className="w-4 h-4 animate-spin" />}
               Approve
             </button>
           </div>

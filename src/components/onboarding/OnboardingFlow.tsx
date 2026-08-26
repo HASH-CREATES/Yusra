@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Terminal, HardDrive, FolderOpen, Sparkles, Download, Cpu } from 'lucide-react';
-import { invoke } from '@tauri-apps/api/core';
+import { Check, Terminal, HardDrive, FolderOpen, Sparkles, Search, Cpu } from 'lucide-react';
+import { api } from '../../lib/api';
 
 const STEPS = ['welcome', 'personality', 'permissions', 'brain', 'activation', 'complete'] as const;
 type Step = typeof STEPS[number];
@@ -30,9 +30,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
   const [enabledPermissions, setEnabledPermissions] = useState<Record<string, boolean>>({});
   const [direction, setDirection] = useState(1);
   const [downloading, setDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadDone, setDownloadDone] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [modelsDir, setModelsDir] = useState('');
 
   const currentIdx = STEPS.indexOf(step);
 
@@ -55,20 +55,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
     setEnabledPermissions(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const downloadDefaultModel = async () => {
+  const detectModel = async () => {
     setDownloading(true);
-    setDownloadProgress(0);
     setDownloadError(null);
     try {
-      const modelPath = await invoke<string>('download_model_command', {
-        url: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf'
-      });
-      await invoke<boolean>('init_model_command', {
-        modelPath: modelPath,
-        tokenizerPath: modelPath.replace('.gguf', '.tokenizer.json')
-      });
-      setDownloadDone(true);
-      setDownloadProgress(100);
+      const { models, active, models_dir } = await api.models();
+      setModelsDir(models_dir);
+      if (active) {
+        setDownloadDone(true);
+      } else if (models.length > 0) {
+        await api.loadModel(models[0].filename);
+        setDownloadDone(true);
+      } else {
+        setDownloadError(`No GGUF found. Drop one into ${models_dir} and click Detect.`);
+      }
     } catch (err) {
       setDownloadError(String(err));
     } finally {
@@ -229,7 +229,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
           {step === 'brain' && (
             <div>
               <h2 className="font-display text-3xl font-semibold text-center mb-2">The Brain</h2>
-              <p className="text-space-100 text-center mb-8">Yusra requires a mind. Select a local GGUF model to download.</p>
+              <p className="text-space-100 text-center mb-8">Yusra requires a mind. Place a local GGUF model, then detect it.</p>
 
               <div className="glass-panel p-6 mb-6">
                 <div className="flex items-center gap-4 mb-4">
@@ -237,15 +237,15 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
                     <Cpu className="w-7 h-7 text-moss" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-display font-semibold text-lg">Qwen 2.5 0.5B (Instruct)</h3>
-                    <p className="text-space-100 text-sm">Fast, lightweight. ~400MB download. Ideal for most tasks.</p>
+                    <h3 className="font-display font-semibold text-lg">Local GGUF Model</h3>
+                    <p className="text-space-100 text-sm">Any instruct GGUF (Qwen, Llama, Phi…) in your models folder. Runs 100% on-device.</p>
                   </div>
                 </div>
 
                 {!downloading && !downloadDone && (
-                  <button onClick={downloadDefaultModel} className="btn-amber w-full h-12 flex items-center justify-center gap-2">
-                    <Download className="w-5 h-5" />
-                    Download Default Model
+                  <button onClick={detectModel} className="btn-amber w-full h-12 flex items-center justify-center gap-2">
+                    <Search className="w-5 h-5" />
+                    Detect Model
                   </button>
                 )}
 
@@ -255,11 +255,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
                       <motion.div
                         className="h-full bg-amber rounded-full"
                         initial={{ width: 0 }}
-                        animate={{ width: `${downloadProgress}%` }}
-                        transition={{ duration: 0.3 }}
+                        animate={{ width: '100%' }}
+                        transition={{ duration: 2, ease: 'easeInOut' }}
                       />
                     </div>
-                    <p className="text-space-100 text-sm text-center font-mono">Downloading... {downloadProgress}%</p>
+                    <p className="text-space-100 text-sm text-center font-mono">Loading model into memory...</p>
                   </div>
                 )}
 
@@ -271,7 +271,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
                 )}
 
                 {downloadError && (
-                  <div className="mt-3 text-red-400 text-sm font-mono">{downloadError}</div>
+                  <div className="mt-3 text-red-400 text-sm font-mono break-all">{downloadError}</div>
+                )}
+                {modelsDir && !downloadDone && !downloading && (
+                  <p className="mt-2 text-space-200 text-xs font-mono break-all">{modelsDir}</p>
                 )}
               </div>
 

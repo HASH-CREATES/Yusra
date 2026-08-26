@@ -5,26 +5,29 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #121212;
-  --bg-secondary: #2A2A24;
-  --bg-tertiary: #4A4A42;
-  --bg-overlay: rgba(18, 18, 18, 0.90);
-  --text-primary: #F5F5F0;
-  --text-secondary: #C8C8C0;
-  --text-tertiary: #8A8A80;
-  --surface-glass: rgba(245, 245, 240, 0.05);
-  --surface-glass-hover: rgba(245, 245, 240, 0.09);
-  --border-subtle: rgba(245, 245, 240, 0.07);
-  --border-refractive: rgba(255, 255, 255, 0.10);
-  --accent-moss: #556B2F;
-  --accent-moss-light: #6B8A3A;
-  --accent-moss-dark: #3E5020;
+  /* 60% — Deep Space Gray base */
+  --bg-primary: #1C1C1E;
+  --bg-secondary: #2C2C2E;
+  --bg-tertiary: #3A3A3C;
+  --bg-overlay: rgba(28, 28, 30, 0.85);
+  /* 30% — Pearl White content layer */
+  --text-primary: #F5F5F7;
+  --text-secondary: #A1A1A6;
+  --text-tertiary: #636366;
+  --surface-glass: rgba(245, 245, 247, 0.06);
+  --surface-glass-hover: rgba(245, 245, 247, 0.10);
+  --border-subtle: rgba(245, 245, 247, 0.08);
+  --border-refractive: rgba(255, 255, 255, 0.12);
+  /* 10% — Moss Green / Tea accent */
+  --accent-moss: #4A5D23;
+  --accent-moss-light: #5A7028;
+  --accent-moss-dark: #3A4A1B;
   --accent-amber: #D4AF37;
   --accent-amber-light: #E0C04A;
   --accent-tea: #8993A3;
   --accent-tea-light: #9AA3B3;
-  --accent-glow: rgba(85, 107, 47, 0.20);
-  --accent-border: rgba(85, 107, 47, 0.35);
+  --accent-glow: rgba(74, 93, 35, 0.15);
+  --accent-border: rgba(74, 93, 35, 0.40);
   --glass-blur: 40px;
   --sidebar-width: 240px;
   --sidebar-collapsed: 64px;
@@ -177,11 +180,40 @@ body {
   background: var(--text-tertiary);
 }
 
+/* Voice Orb animations (Siri-style) */
+@keyframes orb-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes orb-blob {
+  0%, 100% { border-radius: 42% 58% 61% 39% / 45% 40% 60% 55%; }
+  25% { border-radius: 55% 45% 40% 60% / 55% 60% 40% 45%; }
+  50% { border-radius: 40% 60% 55% 45% / 60% 45% 55% 40%; }
+  75% { border-radius: 60% 40% 45% 55% / 40% 55% 45% 60%; }
+}
+@keyframes orb-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+.orb-ring {
+  animation: orb-spin 8s linear infinite;
+  transform-origin: center;
+}
+.orb-blob {
+  animation: orb-blob 6s ease-in-out infinite;
+}
+.orb-bar {
+  transform-origin: bottom;
+  animation: orb-bar 0.9s ease-in-out infinite;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .orb-ring, .orb-blob, .orb-bar {
+    animation: none !important;
   }
 }
