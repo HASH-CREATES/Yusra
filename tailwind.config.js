@@ -18,6 +18,12 @@ export default {
           dark: '#3A4A1B',
           glow: 'rgba(74, 93, 35, 0.15)',
         },
+        amber: {
+          DEFAULT: '#D4AF37',
+          light: '#E0C04A',
+          dark: '#B8962E',
+          glow: 'rgba(212, 175, 55, 0.15)',
+        },
         tea: {
           DEFAULT: '#8993A3',
           light: '#9AA3B3',
@@ -45,7 +51,8 @@ export default {
         'glass-2': '0 8px 24px rgba(0, 0, 0, 0.25)',
         'glass-3': '0 16px 48px rgba(0, 0, 0, 0.35)',
         'glass-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-        'accent-glow': '0 0 20px rgba(74, 93, 35, 0.15)',
+        'accent-glow': '0 0 24px rgba(74, 93, 35, 0.25)',
+        'amber-glow': '0 0 24px rgba(212, 175, 55, 0.20)',
       },
     },
   },

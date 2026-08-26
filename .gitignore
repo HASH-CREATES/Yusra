@@ -1,6 +1,11 @@
 node_modules/
 dist/
 src-tauri/target/
+releases/
 *.log
 .DS_Store
 Thumbs.db
+backend/.venv/
+__pycache__/
+*.pyc
+*.gguf

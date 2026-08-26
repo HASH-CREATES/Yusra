@@ -15,7 +15,7 @@ export default function TitleBar({ onCommandBarToggle }: TitleBarProps) {
         <div className="w-6 h-6 rounded-md bg-moss/20 flex items-center justify-center">
           <Sparkles className="w-3.5 h-3.5 text-moss" />
         </div>
-        <span className="font-display font-semibold text-sm" data-tauri-drag-region>Yusra</span>
+        <span className="font-display font-semibold text-sm tracking-tight" data-tauri-drag-region>Yusra</span>
       </div>
       <div className="flex items-center gap-1">
         <button
